@@ -1,0 +1,42 @@
+{% extends 'app/base.html' %}
+{% load static %}
+
+{% block content %}
+<body>
+    <section class="vh-100">
+        <div class="login-section container-fluid h-custom">
+          <div class="main-login row d-flex justify-content-center align-items-center h-100">
+            <div class="login-img col-6">
+              <img src="{% static 'login/img/login.png' %}"
+                class="img-fluid" alt="Sample image">
+            </div>
+            <div class="login-info col-6">
+              <form method="post" action="{% url 'create_folder' %}">
+                {% csrf_token %}
+                {{ team_form.as_p }}
+                {{ computer_form.as_p }}
+                <div class="login-container">
+                  <div class="form-outline mb-4">
+            <input type="text" id="teamName" name="teamName" class="form-control form-control-lg" placeholder="Имя команды" />
+
+                </div>
+
+                <div class="form-outline mb-4">
+            <input type="text" id="pcNumber" name="pcNumber" class="form-control form-control-lg" placeholder="Номер пк" />
+               </div>
+                </div>
+                <div class="text-center text-lg-center mt-4 pt-2">
+                  <button type="submit" class="btn btn-purple btn-lg" id="btn-login"  onclick="window.location.href='{% url 'index' %}'"style="padding-left: 5.5rem; padding-right: 5.5rem;">Войти
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+{% block scripts %}
+    <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'login/js/login.js' %}"></script>
+{% endblock scripts %}
+{% endblock content %}
