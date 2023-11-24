@@ -320,27 +320,8 @@ document.querySelector('.sumRating').textContent = sum;
 //==============================
 
 
-//   document.getElementById('submit-form').addEventListener('submit', function() {
-//     // Сделать кнопку недоступной после отправки формы
-//     document.getElementById('btn-save').disabled = true;
-//
-//     // Сохранить состояние кнопки в localStorage
-//     localStorage.setItem('submitButtonDisabled', 'true');
-// });
 
-// Проверить состояние кнопки при загрузке страницы
-window.onload = function() {
-    var isButtonDisabled = localStorage.getItem('submitButtonDisabled');
-    if (isButtonDisabled === 'true') {
-        document.getElementById('btn-save').disabled = true;
-    }
-};
 
-window.onload = function() {
-    var items = document.querySelectorAll('.list-group-item');
-
-items[0].click();
-};
 
 
 //==============валидация языка
@@ -376,4 +357,38 @@ const timeStop = document.querySelector('.timeStop')
 if (timeStop.innerHTML == "Время выполнения остановлено")
     showResults()
 
-console.log(timeStop)
+
+  document.getElementById('submit-form').addEventListener('submit', function() {
+    // Сделать кнопку недоступной после отправки формы
+    document.getElementById('btn-save').disabled = true;
+
+    // Сохранить состояние кнопки в localStorage
+    localStorage.setItem('submitButtonDisabled', 'true');
+});
+
+// Проверить состояние кнопки при загрузке страницы
+window.onload = function() {
+    var isButtonDisabled = localStorage.getItem('submitButtonDisabled');
+    if (isButtonDisabled === 'true') {
+        document.getElementById('btn-save').disabled = true;
+    }
+};
+
+ var items = document.querySelectorAll('.list-group-item');
+
+
+window.addEventListener('load', function() {
+    // Проверяем, был ли уже выполнен клик
+    var clickEventExecuted = localStorage.getItem('clickEventExecuted');
+
+    if (!clickEventExecuted) {
+        // Если клик еще не выполнен, выполняем его
+        items[0].click();
+
+        // Устанавливаем флаг в localStorage, чтобы помнить о выполненном клике
+        localStorage.setItem('clickEventExecuted', 'true');
+        console.log('Клик выполнен');
+    } else {
+        console.log('Клик уже был выполнен');
+    }
+});
