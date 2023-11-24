@@ -49,8 +49,11 @@ class Tasks(models.Model):
     input_data = models.TextField()
     output_data = models.TextField()
     task_rating = models.IntegerField(default=0)
-    test_output = models.TextField(default="0")
-    test_input = models.TextField(default="0")
+
+    test_input_1 = models.TextField(default="0")
+    test_output_1 = models.TextField(default="0")
+    test_input_2 = models.TextField(default="0")
+    test_output_2 = models.TextField(default="0")
 
     def __str__(self):
         return self.title

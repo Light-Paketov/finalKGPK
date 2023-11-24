@@ -20,11 +20,11 @@
 					<li class="nav-item">
 						<a class="nav-link" aria-current="page" href="{% url 'login' %}">Выйти</a>
 					</li>
-                    <li class="nav-item ">
-                         <a class="nav-link" href="{% url 'active_next_round' %}">
-                             Следующий раунд
-                        </a>
-                    </li>
+{#                    <li class="nav-item ">#}
+{#                         <a class="nav-link" href="{% url 'active_next_round' %}">#}
+{#                             Следующий раунд#}
+{#                        </a>#}
+{#                    </li>#}
 				</ul>
 			</div>
 		</div>
@@ -60,7 +60,7 @@
                                 <div class="col-8 accordion-item">
                                     <h2 class="accordion-header" id="panelsStayOpen-heading{{ result.task_title.id }}">
                                         <div class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse{{ result.task_title.id }}" aria-expanded="true" aria-controls="panelsStayOpen-collapse{{ result.task_title.id }}">
-                                            <div class="col-6">{{ result.task_title.title }} <span class="languageSpan">{{result.language}}</span></div>
+                                            <div class="col-6">{{ result.task_title.title }} <span class="languageSpan">{{result.task.language}}</span></div>
                                         </div>
                                     </h2>
                                     <div id="panelsStayOpen-collapse{{ result.task_title.id }}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading{{ result.task_title.id }}">
@@ -75,17 +75,17 @@
                                     <div class="col-4 quest-estimation">
                                     <input type="hidden" name="computer_id" value="{{ computer.id }}">
 
-                                    <input placeholder="{{result.rating}}" id="rating{{ result.task_title.id }}" type="text" name="rating" class="col-5 estimation-input form-control" placeholder="Ваша оценка">
+                                    <input placeholder="{{result.rating}}" id="rating{{ result.task_title.id }}" type="text" name="rating" class="rating-input col-5 estimation-input form-control" placeholder="Ваша оценка">
                                     <input placeholder="{{result.comment}}" id="comment{{ result.task_title.id }}" type="text" name="comment" class="col-5 estimation-input form-control" placeholder="Комментарий">
 
                                     <input type="hidden" name="task_id" value="{{ result.task_content.id }}">
                                     <button id="{{ result.id }}" data-result="{{ result.id }}" type="submit" class="btn-estimation btn btn-purple">Сохранить</button>
                                     </div>
                                 </form>
-
                             </div>
                         {% endfor %}
                     </div>
+                 <div class="ratingCount">Всего баллов: <span class="ratingCounter">0</span></div>
                 </div>
             {% endfor %}
         </div>

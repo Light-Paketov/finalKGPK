@@ -36,14 +36,18 @@ def adminPanel(request):
 
 
 def save_estimation(request):
-   
     if request.method == 'POST':
         result_id = request.POST.get('result_id')
-        form = EstimationForm(request.POST)
-        if form.is_valid():
-            rating = form.cleaned_data['rating']
-            comment = form.cleaned_data['comment']
-            Result.objects.filter(id=result_id).update(rating=rating, comment=comment)
+        rating = request.POST.get('rating')
+
+        # Преобразуйте rating в число (если это не пустая строка)
+        rating = int(rating) if rating.strip() else None
+
+        # Используйте метод get с пустой строкой в качестве значения по умолчанию
+        comment = request.POST.get('comment', '')
+
+        # Обновление данных
+        Result.objects.filter(id=result_id).update(rating=rating, comment=comment)
 
     return redirect('adminPanel')
 
@@ -52,11 +56,10 @@ def save_time(request): #====================================
     login = user.get('login', None)
     password = user.get('password', None)
     computer = Computer.objects.get(team__teamName=login,pcNumber=password)
-    print(computer)
     if request.method == 'POST':
-        round_id = request.POST.get('roundID')
         timer_value = request.POST.get('timer_value')
-        Result.objects.filter(round_id=round_id, computer=computer ).update(time=timer_value)
+        print(timer_value)
+        Result.objects.filter(computer=computer ).update(time=timer_value)
 
         return HttpResponse('Данные успешно сохранены')
     else:
@@ -80,7 +83,7 @@ def create_folder(request):
         team_name = request.POST.get('teamName')
         pc_number = request.POST.get('pcNumber')
 
-        if team_name == 'Команда - 28' and pc_number == 'К28-99' or team_name == 'Команда - 27' and pc_number == 'К27-99' or team_name == 'Команда - 26' and pc_number == 'К26-99':
+        if team_name == 'Команда - 28' and pc_number == '99' or team_name == 'Команда - 27' and pc_number == '99' or team_name == 'Команда - 26' and pc_number == '99':
             context = {'team':team_name, 'pc_number':pc_number}
             request.session['context'] = context
             return redirect('adminPanel')
@@ -151,25 +154,22 @@ def index(request):
 
     active_round_task_list = [0,1,2,3,4]
 
-    test_inputs=[]
-
-    for i in range(1,11):
-        test_inputs.append(Tasks.objects.get(id=i).test_input.split('/'))
-
-    print(f'ИНПУТЫ {test_inputs[task_id]}')
-
-    test_outputs=[]
-
-    for i in range(1,11):
-        test_outputs.append(Tasks.objects.get(id=i).test_output.split('/'))
-
-    print(f'ОУТПУТЫ {test_outputs[task_id]}')
+    # test_inputs=[]
+    #
+    # for i in range(1,11):
+    #     test_inputs.append(Tasks.objects.get(id=i).test_input.split('/'))
+    #
+    #
+    # test_outputs=[]
+    #
+    # for i in range(1,11):
+    #     test_outputs.append(Tasks.objects.get(id=i).test_output.split('/'))
     
     login = path_parts[-2]
     password = path_parts[-1]
 
     context = {'login':login, 'password':password, 'title': 'Главная', 'results': result, 'active_round': active_round, 'active_task_id': task_id,
-               'active_round_tasks': active_round_tasks, 'active_round_task_list' : active_round_task_list, 'test_inputs':' | '.join(test_inputs[1]),'test_outputs':' | '.join(test_outputs[1])}
+               'active_round_tasks': active_round_tasks, 'active_round_task_list' : active_round_task_list}
 
     user = {
         'login' : login,

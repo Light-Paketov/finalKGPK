@@ -120,7 +120,9 @@ body {
   border: 2px solid #5436b5;
   color: #5436b5;
 }
-
+#next-task-btn{
+  display: none !important;
+}
 .btn-disabled {
   background-color: #ccc !important;
   border-color: rgb(236, 236, 236) !important;
@@ -307,7 +309,6 @@ textarea::placeholder {
   justify-content: center;
   align-items: center;
 }
-
 .score {
   font-size: 18px;
 }
@@ -361,17 +362,13 @@ textarea::placeholder {
 }
 .waiting {
   text-align: center;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  margin-top: 90px;
 }
 .waiting__title {
   font-size: 32px;
   text-align: center;
   line-height: 130%;
   color: #5436b5;
-  margin-bottom: 20px;
 }
 
 .spinner-border {
@@ -382,7 +379,7 @@ textarea::placeholder {
   color: #fff !important;
 }
 #btn-result{
-  display: none;
+
 }
 #list-tab{
   margin-bottom: 30px;
@@ -408,7 +405,6 @@ margin: 20px;
 .next-round{
   color: #fff;
   font-size: 16px;
-
 }
 .input-data, .output-data{
   font-size: 18px;
@@ -460,4 +456,27 @@ margin: 20px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 5px;
+}
+.ratingCount{
+  color: #5436b5;
+  font-weight: 600;
+}
+.ratingCounter{
+  font-size: 18px;
+}
+.none{
+  display: none;
+}
+.sumRatings{
+  margin-top: 20px;
+  color: #5436b5;
+  font-size: 18px;
+}
+
+.showTime{
+  color: #5436b5;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 10px;
 }

@@ -16,23 +16,29 @@
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 				</ul>
 				<ul class="navbar-nav">
-					<li class="nav-item">
-						<a class="nav-link active" aria-current="page" href="{% url 'login' %}">Выйти</a>
-					</li>
+{#					<li class="nav-item">#}
+{#						<a class="nav-link active" aria-current="page" href="{% url 'login' %}">Выйти</a>#}
+{#					</li>#}
 				</ul>
 			</div>
 		</div>
 	</nav>
+     <div class="waiting none">
+                    <div class="waiting__title">
+                        Ваши задания проверяются. <br>
+                        Преподаватель сообщит вам, когда можно будет посмотреть результаты. <br>
+                    </div>
+                </div>
 	<div class="main">
 		<div class="row">
 				{% for round in active_round %}
-					<div class="col-2">
+					<div class="col-2 showResults">
 						<div class="row tasks">
                             <form method="post" class="p-0" action="{% url 'save_time' %}">
                                 {% csrf_token %}
                                 <div>
                                   <div class="team">{{login}}</div>
-                                  <div class="pcNumber">{{password}}</div>
+                                  <div class="pcNumber">Участник - {{password}}</div>
                                 </div>
                                  <div id="round" data-round="{{ round.id }}" class="round-counter active">Список заданий</div>
                                     <input type="hidden" id="roundID" name="roundID" value="{{ round.id }}">
@@ -46,7 +52,7 @@
 									   aria-controls="list-task{{ task.id }}" onclick="handleItemClick(this)">{{ task.title }} </a>
 								{% endfor %}
 
-                    <div class="timer_title">Время выполнения: <span data-timer="0:00" id="timer">0:00</span></div>
+                    <div class="timer_title"><span class="timeStop">Время выполнения: </span><br><span data-timer="0:01" id="timer">0:00</span></div>
 
                     <!-- <a href="{% url 'results' %}" class="results-link btn btn-purple btn-main">Посмотреть результаты</a> -->
 
@@ -57,7 +63,7 @@
 					<div class="col-10">
 						<form id="submit-form" method="post" action="{% url 'result' %}">
 							{% csrf_token %}
-							<div id="task-container">
+							<div id="task-container" class="showResults">
                                 <input type="hidden" name="round_id" value="{{ round.id }}">
 
 								{% for task in active_round_tasks %}
@@ -68,36 +74,22 @@
                                         <div class="accordion-content unselectable">{{ task.content }}</div>
                                         
                                         <div class="inputs">
-                                          <div>
+                                          <div class="col-4">
                                             <div class="input-data">Входные данные: {{ task.input_data }}</div>
                                             <div class="output-data">Выходные данные: {{ task.output_data }}</div>
                                           </div>
-                                          <div>
-                                            <div class="input-data">Тестовые входные данные: {{test_inputs }}</div>
-                                            <div class="output-data">Тестовые выходные данные: {{ test_outputs }}</div>
+                                          <div class="col-8">
+                                            <div class="input-data">Тестовые входные данные: {{task.test_input_1 }}, {{task.test_input_2 }}</div>
+                                            <div class="output-data">Тестовые выходные данные: {{ task.test_output_1 }}, {{ task.test_output_2 }}</div>
                                           </div>
                                         </div>
-                                            <!-- <table class="table">
-                                              <thead>
-                                                <tr>
-                                                  <th scope="col">Входные данные</th>
-                                                  <th scope="col">Выходные данные</th>
-                                                </tr>
-                                              </thead>
-                                              <tbody>
-                                                <tr>  
-                                                    
-                                                      <td>{{test_inputs}}</td>
-                                                </tr>
-                                              </tbody>
-                                            </table> -->
                                         
                                         <div class="task-answer">{{ task.task }}</div>
 
-                    <div class="langContainer">
-                      <label class="label_title" for="comment">Напишите программу:</label>
-                      <input name="language" type="text" id="areaLanguage" class="form-control" placeholder="Язык программирования">
-                    </div>
+                                <div class="langContainer">
+                                  <label class="label_title" for="comment">Напишите программу:</label>
+                                  <input name="language" type="text" id="areaLanguage" class="form-control" placeholder="Язык программирования">
+                                </div>
 									</div>
 								{% endfor %}
 
@@ -112,8 +104,8 @@
                                 <button id="btn-end"  type="button" class="btn btn-purple btn-main" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                     Завершить игру
                                 </button>
-                                <button id="btn-result" type="button" class="btn btn-purple btn-main" data-bs-toggle="modal" data-bs-target="#staticBackdrop1">
-                                     Результат
+                                <button id="btn-result" type="button" class="btn btn-purple btn-main none" data-bs-toggle="modal" data-bs-target="#staticBackdrop1">
+                                     Результаты
                                 </button>
                             </div>
                         </div>
@@ -129,13 +121,13 @@
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Поздравляем!</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+{#                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>#}
               </div>
               <div class="modal-body modal-save" onclick="saveChanges()">
                 Вы точно хотите закончить игру?
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" id="closeWindow" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
 
                     <button  id="end-round-btn" type="button" onclick="saveChanges()" class="btn btn-purple">Завершить игру</button>
 
@@ -161,6 +153,9 @@
         {% for round in active_round %}
             {% for result in results %}
                 {% if result.round_id == round.id %}
+                    {% if forloop.first %}
+                    <div class="showTime">Ваше время: {{ result.time }}</div>
+                {% endif %}
                 <div class="accordion-container">
                     <div class="col-8 accordion-item">
                         <h2 class="accordion-header" id="panelsStayOpen-heading{{ result.task_title }}">
@@ -176,18 +171,21 @@
                         </div>
                     </div>
                         <div class="result-rating">
-                            <div>баллы - {{ result.rating }}</div>
+                            <div>баллы - <span class="ratingSum">{{ result.rating }}</span></div>
                         </div>
                 </div>
+
                     {% endif %}
             {% endfor %}
+            <div class="sumRatings">Общее количество баллов: <span class="sumRating">0</span></div>
          {% endfor %}
         </div>
     </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            <button type="button" class="btn btn-purple">Понял</button>
+              <button data-bs-dismiss="modal" type="button" class="btn  btn-purple">Понял</button>
+
           </div>
         </div>
       </div>

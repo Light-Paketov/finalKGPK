@@ -9,7 +9,7 @@ class ComputerAdmin(admin.ModelAdmin):
 	list_display = ('pcNumber','team')
 		
 class TasksAdmin(admin.ModelAdmin):
-	list_display = ('round','title', 'content','task_rating',"test_input", "test_output")
+	list_display = ('round','title', 'content','task_rating',"test_input_1", "test_output_1","test_input_2", "test_output_2")
 
 class RoundAdmin(admin.ModelAdmin):
 	list_display = ('active','title','computer')

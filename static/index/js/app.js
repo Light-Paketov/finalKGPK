@@ -1,95 +1,6 @@
-document.addEventListener("DOMContentLoaded", function () {
-    var timerElement = document.getElementById('timer');
-    var roundElement = document.getElementById('round');
-    const endRound = document.getElementById('end-round-btn');
+const startTime = localStorage.getItem('startTime');
+let isTimerPaused = false; // Флаг паузы
 
-    // Получаем предыдущее значение data-round из localStorage
-    var prevRoundId = localStorage.getItem('prevRoundId');
-
-    // Сравниваем текущее значение data-round с предыдущим
-    if (prevRoundId && roundElement.dataset.round !== prevRoundId) {
-        // Если значение изменилось после обновления, сбрасываем таймер
-        localStorage.removeItem('timer');
-    }
-
-    // Обновляем localStorage с текущим значением data-round
-    localStorage.setItem('prevRoundId', roundElement.dataset.round);
-
-    var savedTime = localStorage.getItem('timer');
-    var seconds = 0;
-    var minutes = 0;
-
-    if (savedTime) {
-        var savedTimeArray = savedTime.split(':');
-        minutes = parseInt(savedTimeArray[0], 10);
-        seconds = parseInt(savedTimeArray[1], 10);
-    }
-
-    function updateTimer() {
-    seconds++;
-
-    if (seconds === 60) {
-        seconds = 0;
-        minutes++;
-    }
-
-    var formattedTime = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-
-    // Обновляем текстовое содержимое элемента
-    timerElement.textContent = formattedTime;
-
-    // Обновляем атрибут data-timer
-    timerElement.setAttribute('data-timer', formattedTime);
-
-    // Обновляем localStorage с текущим значением таймера
-    localStorage.setItem('timer', formattedTime);
-}
-
-    var timerInterval = setInterval(updateTimer, 1000);
-
-    // Создаем новый экземпляр MutationObserver с функцией обратного вызова
-    var observer = new MutationObserver(function (mutationsList) {
-        for (var mutation of mutationsList) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'data-round') {
-                // Перезапускаем секундомер при изменении атрибута data-round
-                clearInterval(timerInterval);
-                seconds = 0;
-                minutes = 0;
-                timerInterval = setInterval(updateTimer, 1000);
-
-                // Обновляем localStorage с текущим значением data-round
-                localStorage.setItem('prevRoundId', roundElement.dataset.round);
-            }
-        }
-    });
-
-    // Настраиваем конфигурацию MutationObserver для отслеживания изменений атрибута
-    const btnLogin = document.getElementById('btn-login')
-    var observerConfig = { attributes: true };
-    btnLogin.addEventListener('click', ()=>{
-           clearInterval(timerInterval);
-      })
-    // Начинаем наблюдение за элементом с атрибутом data-round
-    observer.observe(roundElement, observerConfig);
-});
-
-
-
-
-// Функция для получения значения таймера
-// Получение значения таймера
-function getTimerValue() {
-    var timerElement = document.getElementById('timer');
-    return timerElement.dataset.timer;
-}
-
-// Получение значения roundID
-function getRoundID() {
-    var roundIDElement = document.getElementById('roundID');
-    return roundIDElement.value;
-}
-
-// Получение CSRF-токена
 function getCSRFToken() {
     var csrfTokenCookie = document.cookie.split(';').find(function(cookie) {
         return cookie.trim().startsWith('csrftoken=');
@@ -98,66 +9,98 @@ function getCSRFToken() {
     return csrfTokenCookie ? csrfTokenCookie.split('=')[1] : null;
 }
 
-// Отправка данных на сервер
-function sendDataToServer(data) {
-    var xhr = new XMLHttpRequest();
-    var url = '/save_time/';
-    var csrfToken = getCSRFToken();
+function pad(number) {
+    return (number < 10) ? '0' + number : number;
+}
 
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+function updateTimer() {
+    if (isTimerPaused) {
+        return; // Если таймер на паузе, не обновляем его
+    }
 
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-                console.log('Данные успешно отправлены на сервер.');
-            } else {
-                console.error('Ошибка при отправке данных на сервер:', xhr.statusText);
-            }
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - parseInt(startTime);
+    const seconds = Math.floor(elapsedTime / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    document.getElementById('timer').innerHTML = `${pad(minutes)}:${pad(remainingSeconds)}`;
+}
+
+if (startTime) {
+    const timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+
+    window.addEventListener('beforeunload', function() {
+        clearInterval(timerInterval);
+    });
+
+    const endTime = document.getElementById('end-round-btn');
+    endTime.addEventListener('click', function() {
+        clearInterval(timerInterval);
+        const currentTime = Date.now();
+        const elapsedTime = currentTime - parseInt(startTime);
+        const seconds = Math.floor(elapsedTime / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        const timerValue = `${pad(minutes)}:${pad(remainingSeconds)}`;
+
+        const csrfToken = getCSRFToken();
+        if (csrfToken) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/save_time/', true);  // Замените '/save-time/' на свой URL
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.setRequestHeader('X-CSRFToken', csrfToken);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log('Значение таймера успешно отправлено');
+                }
+            };
+            xhr.send('timer_value=' + encodeURIComponent(timerValue));
         }
-    };
 
-    xhr.send(data);
+        localStorage.removeItem('startTime');
+        localStorage.setItem('timerPaused', isTimerPaused); // Сохраняем состояние паузы
+    });
+
+    // Добавляем обработчик для кнопки паузы
+    const pauseButton = document.getElementById('end-round-btn');
+    pauseButton.addEventListener('click', function() {
+        let newTimer = document.querySelector('.timeStop')
+        console.log(newTimer)
+        isTimerPaused = !isTimerPaused; // Переключаем флаг паузы
+
+        if (!isTimerPaused) {
+            // Если таймер возобновлен, обновляем startTime
+            localStorage.setItem('startTime', Date.now() - (parseInt(startTime) - Date.now()));
+        }
+        else {
+            newTimer.innerText = 'Время выполнения остановлено';
+            localStorage.setItem('timerPaused', isTimerPaused); // Сохраняем состояние паузы
+        }
+    });
+} else {
+    const timerPaused = localStorage.getItem('timerPaused');
+    if (timerPaused === 'true') {
+        let newTimer = document.querySelector('.timeStop');
+        newTimer.innerText = 'Время выполнения остановлено';
+    }
 }
 
-// Отправка данных на сервер при клике на кнопку
-const endRound = document.getElementById('end-round-btn');
-function sendData() {
-    var timerValue = getTimerValue();
-    var roundID = getRoundID();
-
-    // Формирование данных для отправки
-    var data = 'timer_value=' + encodeURIComponent(timerValue) + '&roundID=' + encodeURIComponent(roundID);
-
-    sendDataToServer(data);
-}
-
-// Слушатель события для кнопки
-endRound.addEventListener('click', sendData);
 //=====================ПЕРЕКЛЮЧЕНИЕ И КНОПКИ====================================================================================
-// var submitform = document.getElementById('submit-form');
-// submitform.addEventListener('submit', function(event) {
-//     // Ваш код для добавления класса или другие действия
-//      saveButton.disabled = true
-//
-//     // Вручную вызываем отправку формы
-//     this.submit(); // "this" здесь ссылается на форму
-//   });
-
+ var items = document.querySelectorAll('.list-group-item');
 function handleItemClick(clickedItem) {
     // Находим все элементы с классом 'list-group-item'
-    var items = document.querySelectorAll('.list-group-item');
+        var items = document.querySelectorAll('.list-group-item');
 
     // Убираем класс 'active' у всех элементов
     items.forEach(function (item) {
         item.classList.remove('list-group-show')
+        document.getElementById('btn-save').disabled = false;
     });
 
     // Добавляем класс 'active' только к текущему элементу
     clickedItem.classList.add('list-group-show');
-    saveButton.classList.remove("btn-disabled")
-    // saveButton.disabled = false
 }
 
     var items = document.querySelectorAll('.list-group-item-tasks');
@@ -195,6 +138,11 @@ function saveChanges() {
     // Здесь вы можете изменить содержимое modal-body
     document.querySelector('.modal-save').innerHTML = 'Идет проверка ваших заданий! <br> Преподаватель сообщит вам, когда можно посмотреть результат';
     document.getElementById('end-round-btn').style.display = 'none'
+
+    var myButton = document.getElementById("closeWindow");
+    myButton.onclick = function() {
+        showResults();
+    };
   }
 //=========================================================================================================
 
@@ -276,10 +224,7 @@ listItems.forEach(function (item, index) {
     });
 });
 
-// document.getElementById('end-round-btn').addEventListener('click', function () {
-//     // Ваш код для завершения раунда
-//     alert('Раунд завершен');
-// });
+
 
 });
 
@@ -308,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			xhr.onreadystatechange = function () {
 				if (xhr.readyState == 4 && xhr.status == 200) {
 					// Обработка успешного ответа от сервера
-					console.log(xhr.responseText);
+					console.log('успешно');
 				}
 			};
 
@@ -326,3 +271,109 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
+//=================================СЛОЖЕНИЕ БАЛЛОВ
+
+const ratingInputs = document.querySelectorAll('.rating-input')
+
+ratingInputs.forEach((el)=>{
+    const sum = el += el
+})
+
+//=========================================================
+endRound = document.getElementById('end-round-btn')
+
+function showResults(){
+    const noneElements = document.querySelectorAll('.showResults')
+    const btnResult = document.getElementById('btn-result')
+    const waiting = document.querySelector('.waiting')
+    const btnEnd = document.getElementById('btn-end')
+    const btnSave = document.getElementById('btn-save')
+    const tasksControl = document.querySelector('.btns')
+
+    noneElements.forEach(el =>{
+    el.classList.add('none')
+         waiting.classList.remove('none')
+    btnResult.classList.remove('none')
+    btnEnd.classList.add('none')
+    btnSave.classList.add('none')
+    tasksControl.style.textAlign = 'center'
+})
+}
+// endRound.addEventListener('click', showResults)
+
+
+//===================================
+var ratingElements = document.querySelectorAll('.ratingSum');
+
+// Инициализируем переменную для хранения суммы
+var sum = 0;
+
+// Проходим по каждому элементу и добавляем его значение к сумме
+ratingElements.forEach(function(element) {
+    sum += parseInt(element.textContent);
+});
+console.log(sum)
+
+// Выводим результат в элемент с id "sumRating"
+document.querySelector('.sumRating').textContent = sum;
+
+//==============================
+
+
+//   document.getElementById('submit-form').addEventListener('submit', function() {
+//     // Сделать кнопку недоступной после отправки формы
+//     document.getElementById('btn-save').disabled = true;
+//
+//     // Сохранить состояние кнопки в localStorage
+//     localStorage.setItem('submitButtonDisabled', 'true');
+// });
+
+// Проверить состояние кнопки при загрузке страницы
+window.onload = function() {
+    var isButtonDisabled = localStorage.getItem('submitButtonDisabled');
+    if (isButtonDisabled === 'true') {
+        document.getElementById('btn-save').disabled = true;
+    }
+};
+
+window.onload = function() {
+    var items = document.querySelectorAll('.list-group-item');
+
+items[0].click();
+};
+
+
+//==============валидация языка
+const languageInput = document.getElementById('areaLanguage');
+
+languageInput.addEventListener('input', function() {
+  validateTextInput(languageInput);
+});
+
+function validateTextInput(input) {
+  if (input && input.value) {
+    // Разрешаем буквы (латиницу и кириллицу), цифры и пробелы
+    input.value = input.value.replace(/[^a-zA-Zа-яА-Я0-9\s]/g, '');
+  }
+}
+
+//====================
+// const mytimer = document.getElementById('timer');
+//
+// // Получаем элемент, к которому мы хотим добавить/удалить класс
+// const myElement = document.querySelector('.showResults');
+//
+// // Проверяем, есть ли у кнопки класс 'none'
+// if (mytimer.innerHTML == '0:00') {
+//   // Если есть, то добавляем класс 'none' к элементу
+//   myElement.classList.add('none');
+// } else {
+//   // Если нет, то удаляем класс 'none' у элемента (если он есть)
+//   myElement.classList.remove('none');
+// }
+
+const timeStop = document.querySelector('.timeStop')
+if (timeStop.innerHTML == "Время выполнения остановлено")
+    showResults()
+
+console.log(timeStop)

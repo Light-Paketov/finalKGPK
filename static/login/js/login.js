@@ -20,8 +20,17 @@ inputTeam.addEventListener("input", addPrefix);
 function formatInput() {
     var inputValue = inputPc.value.replace(/\D/g, '').slice(0, 4);
 
-    inputPc.value = "К" + inputValue.substring(0, 2) + "-" + inputValue.substring(2);
+    inputPc.value = inputValue.slice(0, 2);
 }
 
 inputPc.addEventListener("click", formatInput);
 inputPc.addEventListener("input", formatInput);
+
+//-==============================================================================
+document.getElementById('btn-login').addEventListener('click', function() {
+    // Сохраняем текущее время в миллисекундах в Local Storage
+    localStorage.setItem('startTime', Date.now());
+
+    // Переход на другую страницу
+    window.location.href = '../../../templates/app/index.html';
+});
